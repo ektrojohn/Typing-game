@@ -1,0 +1,89 @@
+import pygame as pg
+from pygame.locals import *
+
+pg.init()
+grey = (200, 200, 200)
+dark_grey = (125, 125, 125)
+green = (90, 187, 71)
+red = (238,50,49)
+i = 0
+words = []
+font = pg.font.SysFont('tahoma', 20)
+
+def divide_into_lines(sentence):
+    divisor = 0
+    division = []
+    for i in range(len(sentence)):
+        img = font.render(sentence[0:i], True, (0,0,0))
+        le = img.get_rect().width
+        if le >= 560:
+            division.append(sentence[0:divisor])
+            rest = divide_into_lines(sentence[divisor+1:])
+            division = division + rest
+            return division
+        if sentence[i] == ' ':
+            divisor = i
+    return [sentence]
+
+
+def division_to_words(text):
+    words = []
+    words.append([])
+    for i in range(len(text)):
+        if i == 0 and text[0] != ' ': words[0] = text[0]
+        elif i+1 < len(text) and text[i] == ' ' and text[i+1] != ' ': words.append('')
+        elif text[i] != ' ': words[len(words)-1] += text[i]
+    return words
+
+def into_array(text):
+    answer = []
+    division = divide_into_lines(text)
+    for i in range(len(division)):
+        answer.append(division_to_words(text))
+    return answer
+
+def typ_text(text, event):
+    if event.type == pg.KEYDOWN:
+        a = event.unicode
+        if event.key == pg.K_BACKSPACE:
+            text = text[:-1]
+        elif event.key == pg.K_LSHIFT:
+            pass
+        elif event.key == pg.K_RETURN:
+            text = text + ' '
+        else:
+            text = text + a
+    return text
+
+def determine_line(text, index):
+    answer = 0
+    lines = divide_into_lines(text)
+    for i in range(len(lines)):
+        lines_words = len(division_to_words(lines[i]))
+        answer += lines_words
+        if answer >= index: return i
+    return len(lines) - 1
+
+def counter(lines):
+    ans = []
+    ans.append(len(division_to_words(lines[0])))
+    for i in range(len(lines) - 1):
+        ans.append(len(division_to_words(lines[i+1])) + ans[i])
+    return ans
+
+def searching_stories():
+    lll = []
+    stories = []
+    stories.append('')
+    f = open("C:\\Users\\Jan\\Desktop\\Nowy folder\\stories to game.txt", "r")
+    lll = f.readlines()
+    story_counter = 0
+    for line in lll:
+        if len(line) > 1:
+            stories[story_counter] += (line + ' ')
+        else:
+            stories.append('')
+            story_counter += 1
+    return stories
+
+
