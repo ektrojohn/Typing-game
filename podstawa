@@ -1,0 +1,241 @@
+import pygame as pg
+from pygame.locals import *
+import Typing_text
+import time
+from datetime import datetime
+from PIL import Image
+import numpy
+import random
+#import pymouse
+
+foil = (66, 190, 216)
+grey = (200, 200, 200)
+dark_grey = (125, 125, 125)
+green = (90, 187, 71)
+red = (238,50,49)
+dark_red = (130, 20, 15)
+black = (0,0,0)
+indigo = (75,0,130)
+screen_width = 800
+screen_length = 500
+pg.init()
+screen = pg.display.set_mode((800, 500))
+font = pg.font.SysFont('tahoma', 20)
+font2 = pg.font.SysFont('tahoma', 30)
+
+def thesame(list1, list2, difference):
+    if len(list1) != len(list2): return False
+    for i in range(len(list1)):
+        if (list1[i] - list2[i]) > difference[i] or (list1[i] - list2[i]) < - difference[i]: return False
+    return True
+
+def image_create():
+    ground = pg.image.load(r"C:\Users\Jan\Desktop\pierwszy\typing_test_background")
+    image = Image.open(r"C:\Users\Jan\Desktop\pierwszy\typing_test_background")
+    resized_image = image.resize((600, 300))
+    arr = numpy.array(resized_image)
+    for i in range(300):
+        for j in range(600):
+            if thesame(list(arr[i, j]), [236, 64, 122], [20, 20, 20]):
+                arr[i, j] = list(foil)
+    final = Image.fromarray(numpy.uint8(arr)).convert('RGB')
+    final.save(r"C:\Users\Jan\Desktop\pierwszy\typing.jpg")
+    background = pg.image.load(r"C:\Users\Jan\Desktop\pierwszy\typing.jpg")
+    screen.blit(background, (100, 0))
+    pg.display.update()
+
+def image_create_2():
+    pg.draw.rect(screen, foil, (0, 0, 800, 500))
+    image = Image.open(r'C:\Users\Jan\Desktop\pierwszy\summary.jpg')
+    resized_image = image.resize((400, 240))
+    arr = numpy.array(resized_image)[30:210, 50:350]
+    for i in range(180):
+        for j in range(300):
+            if thesame(list(arr[i, j]), [255, 255, 255], [10, 10, 10]) is False:
+                arr[i, j] = list(foil)
+    final = Image.fromarray(numpy.uint8(arr)).convert('RGB')
+    final.save(r"C:\Users\Jan\Desktop\pierwszy\summary_transform.jpg")
+    background = pg.image.load(r"C:\Users\Jan\Desktop\pierwszy\summary_transform.jpg")
+    screen.blit(background, (250, -20))
+    pg.display.update()
+
+
+def set_up():
+    pg.display.set_caption("Typing game")
+    pg.draw.rect(screen, foil, (0, 0, 800, 500))
+    image_create()
+    pg.display.update()
+
+def button_start(start_x, start_y, width, length, color1, color2, text, mo, event):
+    img = font.render(text, True, (0, 0, 0))
+    a = img.get_rect().width
+    b = img.get_rect().height
+    if start_x < mo[0] < start_x + width and start_y < mo[1] < start_y + length:
+        pg.draw.rect(screen, color2, (start_x, start_y, width, length))
+        screen.blit(img, (start_x + (width - a) / 2, start_y + (length - b) / 2))
+        pg.display.update()
+        if event.type == pg.MOUSEBUTTONDOWN:
+            return True
+        return False
+    else:
+        pg.draw.rect(screen, color1, (start_x, start_y, width, length))
+        screen.blit(img, (start_x + (width - a) / 2, start_y + (length - b) / 2))
+        pg.display.update()
+        return False
+
+
+def branch():
+    pg.draw.rect(screen, grey, (100, 270, 600, 100))
+    pg.draw.rect(screen, black, (100, 270, 600, 4))
+    pg.draw.rect(screen, black, (100, 270, 4, 100))
+    pg.draw.rect(screen, black, (696, 270, 4, 100))
+    pg.draw.rect(screen, black, (100, 366, 600, 4))
+    pg.draw.rect(screen, black, (100, 318, 600, 4))
+
+#####
+
+def start_typing():
+    stories = Typing_text.searching_stories()
+    ran_int = random.randint(0, len(stories) - 1)
+    story = stories[ran_int][:-2]
+    typing_mode(story)
+
+def print_text(tt, original_text):
+    branch()
+    lines = Typing_text.divide_into_lines(tt)
+    words_original = Typing_text.division_to_words(original_text)
+    player = Typing_text.division_to_words(tt)
+    current_words = 0
+    j = 0
+    for i in range(len(lines)):
+        words_per_line = len(Typing_text.division_to_words(lines[i]))
+        if i < len(lines) - 2:
+            current_words += words_per_line
+            continue
+        length_line = 0
+        for a in range(len(lines[i])):
+            x = lines[i][a]
+            if x == ' ':
+                letter = font.render(x, True, green)
+                screen.blit(letter, (110 + length_line, 282 + 50*j))
+                length_line += letter.get_rect().width
+            else:
+                t = len(Typing_text.division_to_words(lines[i][0:a+1]))
+                length_of_word = len(Typing_text.division_to_words(lines[i][0:a+1])[t-1])
+                if t + current_words - 1 < len(words_original) and length_of_word <= len(words_original[t + current_words - 1]) and player[t + current_words - 1][length_of_word - 1] == words_original[t + current_words - 1][length_of_word - 1]:
+                    letter = font.render(x, True, green)
+                    screen.blit(letter, (110 + length_line, 282+50*j))
+                    length_line += letter.get_rect().width
+                else:
+                    letter = font.render(x, True, red)
+                    screen.blit(letter, (110 + length_line, 282+50*j))
+                    length_line += letter.get_rect().width
+        current_words += words_per_line
+        j += 1
+    pg.display.update()
+
+def type_original_text(tt, original_text):
+    pg.draw.rect(screen, grey, (100, 50, 600, 180))
+    words_original = Typing_text.division_to_words(original_text)
+    player = Typing_text.division_to_words(tt)
+    if len(player) == 0: painted = -1
+    elif len(player) < len(words_original) and player[len(player) - 1] == words_original[len(player) - 1]: painted = len(player)
+    else: painted = len(player) - 1
+    lines = Typing_text.divide_into_lines(original_text)
+    number_in_lines = Typing_text.counter(lines)
+    place = -1
+    for i in range(len(lines)):
+        if number_in_lines[i] >= len(player):
+            place = i
+            break
+    if place == -1: place = len(lines) - 1
+    if place <= 2: list = numpy.linspace(0, min(4, len(lines) - 1), min(4, len(lines) - 1) + 1)
+    else: list = numpy.linspace(place - 2, min(place + 2, len(lines) - 1), min(place + 2, len(lines) - 1) - place + 3)
+    j = 0
+    for i in list:
+        length_line = 0
+        i = int(i)
+        for a in range(len(lines[i])):
+            x = lines[i][a]
+            if x == ' ':
+                letter = font.render(x, True, black)
+                screen.blit(letter, (110 + length_line, 60 + (letter.get_rect().height + 8)*j))
+                length_line += letter.get_rect().width
+            else:
+                t = len(Typing_text.division_to_words(lines[i][0:a+1]))
+                if i >= 1: t += number_in_lines[i-1]
+                if t - 1 == painted:
+                    letter = font.render(x, True, indigo)
+                    screen.blit(letter, (110 + length_line, 62 + (letter.get_rect().height + 8)*j))
+                    length_line += letter.get_rect().width
+                else:
+                    letter = font.render(x, True, black)
+                    screen.blit(letter, (110 + length_line, 60 + (letter.get_rect().height + 8)*j))
+                    length_line += letter.get_rect().width
+        j += 1
+    pg.display.update()
+
+def summary(begin, text, original_text):
+    image_create_2()
+    end = datetime.now()
+    time_of_typing = end - begin
+    compared1 = Typing_text.division_to_words(text)
+    compared2 = Typing_text.division_to_words(original_text)
+    correct = 0
+    k = min(len(compared2), len(compared1))
+    for i in range(k):
+        if compared2[i] == compared1[i]: correct += 1
+    acc1 = font2.render("Accuracy: {}/{}".format(correct, k), True, black)
+    screen.blit(acc1, (80, 150))
+    acc2 = font2.render("Accuracy (percentage): " + ('%.2f%%' % (100*correct/k)), True, black)
+    screen.blit(acc2, (80, 190))
+    spe1 = font2.render("Speed: " + ('%.1f' % (60*k/time_of_typing.seconds)) + " words per minute", True, black)
+    screen.blit(spe1, (80, 230))
+    tot1 = font2.render("Time: " + str(time_of_typing), True, black)
+    screen.blit(tot1, (80, 270))
+    pg.display.update()
+    while True:
+        mouse3 = list(pg.mouse.get_pos())
+        for event in pg.event.get():
+            if event.type == QUIT:
+                pg.quit()
+            U = button_start(420, 420, 220, 50, red, dark_red, 'Quit', mouse3, event)
+            V = button_start(160, 420, 220, 50, grey, dark_grey, 'Again', mouse3, event)
+            if U: pg.quit()
+            if V: start_typing()
+
+def typing_mode(sentence):
+    ten = ''
+    pg.draw.rect(screen, foil, (0, 0, 800, 500))
+    branch()
+    divided_text = Typing_text.divide_into_lines(sentence)
+    type_original_text('', sentence)
+    begin = datetime.now()
+    while True:
+        mouse2 = list(pg.mouse.get_pos())
+        ten1 = ''
+        for event in pg.event.get():
+            if event.type == QUIT:
+                pg.quit()
+            ten1 = Typing_text.typ_text(ten, event)
+            if ten1 != ten:
+                ten = ten1
+                print_text(ten, sentence)
+                type_original_text(ten, sentence)
+            Y = button_start(420, 420, 220, 50, grey, dark_grey, 'Stop', mouse2, event)
+            Z = button_start(160, 420, 220, 50, grey, dark_grey, 'Again', mouse2, event)
+            if Z: start_typing()
+            if Y: summary(begin, ten, sentence)
+
+
+##############################################
+##############################################
+
+set_up()
+while True:
+    mouse = list(pg.mouse.get_pos())
+    for event in pg.event.get():
+        if event.type == QUIT:
+            pg.quit()
+        X = button_start(250, 350, 300, 50, grey, dark_grey, 'Start typing', mouse, event)
+        if X: start_typing()
