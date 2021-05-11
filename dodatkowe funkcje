@@ -10,6 +10,11 @@ i = 0
 words = []
 font = pg.font.SysFont('tahoma', 20)
 
+###Kilka pomocniczych, mniejszych funkcji do działania programu, ich obecność nie jest konieczna we wcześniejszym
+###module. Miałem problem np. aby przerzucić funkcje operujące na GUI tutaj, stąd tutaj są głównie tylko te funkcje,
+###które wyczytują tekst wprowadzony przez użytkownika, dzielą teksty (użytkownika i oryginalny) na linie i słowa.
+###Również można tutaj znaleźć funkcję searching_stories, która wyszukuje tekst z pliku tekstowego do wypisania.
+
 def divide_into_lines(sentence):
     divisor = 0
     division = []
@@ -85,5 +90,3 @@ def searching_stories():
             stories.append('')
             story_counter += 1
     return stories
-
-
