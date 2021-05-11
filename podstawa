@@ -8,6 +8,14 @@ import numpy
 import random
 #import pymouse
 
+##Opis działania gry: mierzy prędkość wypisywania tekstu. Najpierw program losuje nam pewien tekst z pliku, który
+##wpisujemy do konsoli. W konsoli mamy wyświetlone, które z ostatnich słów wypisaliśmy w sposób właściwy, a które nie:
+##te dobre litery są zielone, natomiast złe są niebieskie. Na dole głównego ekranu mamy dwie możliwości: możemy albo
+##wymienić tekst na inny (jeżeli nam na przykład nie pasuje) bądź też zakończyć wpisywanie tekstu. W tym drugim
+##przypadku na ekranie pojawią się statystyki z ostatniego wpisywanego tekstu: liczba dobrych słów, czas wpisywania,
+##liczba słów (wszystkich - dobrych i złych) na minutę itp. Wtedy również mamy możliwość albo wybrania ponownie nowego
+##tekstu bądź zakończenia korzystania z programu.
+
 foil = (66, 190, 216)
 grey = (200, 200, 200)
 dark_grey = (125, 125, 125)
@@ -29,6 +37,8 @@ def thesame(list1, list2, difference):
         if (list1[i] - list2[i]) > difference[i] or (list1[i] - list2[i]) < - difference[i]: return False
     return True
 
+###interfejs dla menu
+
 def image_create():
     ground = pg.image.load(r"C:\Users\Jan\Desktop\pierwszy\typing_test_background")
     image = Image.open(r"C:\Users\Jan\Desktop\pierwszy\typing_test_background")
@@ -43,6 +53,8 @@ def image_create():
     background = pg.image.load(r"C:\Users\Jan\Desktop\pierwszy\typing.jpg")
     screen.blit(background, (100, 0))
     pg.display.update()
+
+###interfejs dla podsumowania
 
 def image_create_2():
     pg.draw.rect(screen, foil, (0, 0, 800, 500))
@@ -59,12 +71,19 @@ def image_create_2():
     screen.blit(background, (250, -20))
     pg.display.update()
 
+###wszystko co musi program wykonać przed przejściem do właściwej gry, interfejs do menu (image_create), tło (2 linia w
+###funkcji)
 
 def set_up():
     pg.display.set_caption("Typing game")
     pg.draw.rect(screen, foil, (0, 0, 800, 500))
     image_create()
     pg.display.update()
+
+###konstruktor dla przycisku, co prawda nie wprowadzałem przycisk jako obiekt (gdyż tak było prościej),
+###jednak gdybym to zrobił, to poniższa funkcja mogłaby być takim konstruktorem - jej inicjalizacja
+### wyrzuca na GUI przycisk w odpowiednim miejscu. Ponadto mamy dwa kolory (color1, color2), w których
+### prezentuje się przycisk odpowiednio gdy najeżdżamy kursorem na obszar przycisku.
 
 def button_start(start_x, start_y, width, length, color1, color2, text, mo, event):
     img = font.render(text, True, (0, 0, 0))
@@ -83,6 +102,7 @@ def button_start(start_x, start_y, width, length, color1, color2, text, mo, even
         pg.display.update()
         return False
 
+###funkcja pomocnicza do działania konsoli do wprowadzania tekstu
 
 def branch():
     pg.draw.rect(screen, grey, (100, 270, 600, 100))
@@ -92,13 +112,19 @@ def branch():
     pg.draw.rect(screen, black, (100, 366, 600, 4))
     pg.draw.rect(screen, black, (100, 318, 600, 4))
 
-#####
 
 def start_typing():
     stories = Typing_text.searching_stories()
     ran_int = random.randint(0, len(stories) - 1)
     story = stories[ran_int][:-2]
     typing_mode(story)
+
+
+###wpisywanie wprowadzonego przez użytkownika tekstu do kontroli - po wpisaniu dowolnej litery funkcja przyjmuje za
+###argument tt dotychczasowo wprowadzony cały tekst oraz za original_text tekst wylosowany, potem
+###funkcja divide_into_lines z pomocniczego modułu dzieli wprowadzony tekst na linie, a sama funkcja
+###wypisuje jedynie ostatnie dwie linie z wypisanego tekstu - wypisywanie całego
+###dotychczasowego tekstu użytkownika nie byłoby praktyczne oraz nie zmieściłoby się w konsoli
 
 def print_text(tt, original_text):
     branch()
@@ -133,6 +159,11 @@ def print_text(tt, original_text):
         current_words += words_per_line
         j += 1
     pg.display.update()
+
+###wpisywanie oryginalnego tekstu do kontroli - dosyć podobnie co poprzednia funkcja, za
+###pomocą funkcji divide_into_lines z pomocniczego modułu dzieli oryginalny tekst na linie, a sama funkcja
+###wypisuje jedynie te linie, które pokrywają się z tym gdzie jest użytkownik, jeśli chodzi o wprowadzanie treści
+###funkcja obniża również i zmienia kolor na fioletowy wyraz, który aktualnie użytkownik wypisuje
 
 def type_original_text(tt, original_text):
     pg.draw.rect(screen, grey, (100, 50, 600, 180))
@@ -175,6 +206,9 @@ def type_original_text(tt, original_text):
         j += 1
     pg.display.update()
 
+
+#### silnik trybu "podsumowanie"
+
 def summary(begin, text, original_text):
     image_create_2()
     end = datetime.now()
@@ -204,6 +238,8 @@ def summary(begin, text, original_text):
             if U: pg.quit()
             if V: start_typing()
 
+### silnik trybu "wpisywanie tekstu"
+
 def typing_mode(sentence):
     ten = ''
     pg.draw.rect(screen, foil, (0, 0, 800, 500))
@@ -213,7 +249,6 @@ def typing_mode(sentence):
     begin = datetime.now()
     while True:
         mouse2 = list(pg.mouse.get_pos())
-        ten1 = ''
         for event in pg.event.get():
             if event.type == QUIT:
                 pg.quit()
@@ -239,3 +274,4 @@ while True:
             pg.quit()
         X = button_start(250, 350, 300, 50, grey, dark_grey, 'Start typing', mouse, event)
         if X: start_typing()
+
